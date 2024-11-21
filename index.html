@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lenape Mad Libs Generator</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .title h1 {
+            font-size: 40px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .title h2 {
+            font-size: 24px;
+            color: #666;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .madlib-section {
+            width: 45%;
+            margin: 0 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+        .example-section {
+            width: 30%;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .example-button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            font-size: 16px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .story-output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">
+        <h1>Lenape Mad Libs Generator</h1>
+        <h2>Have Fun!</h2>
+    </div>
+    <div class="container">
+        <div class="madlib-section" id="madlib1">
+            <h2>The Bicycle Crash</h2>
+            <div id="madlib1-inputs"></div>
+            <button id="generate1" class="example-button">Generate Story!</button>
+            <div id="story1-output" class="story-output"></div>
+        </div>
+        
+        <div class="madlib-section" id="madlib2">
+            <h2>Two to Tango</h2>
+            <div id="madlib2-inputs"></div>
+            <button id="generate2" class="example-button">Generate Story!</button>
+            <div id="story2-output" class="story-output"></div>
+        </div>
+
+        <div class="example-section" id="example-section">
+            <h3>Lenape Word Examples</h3>
+        </div>
+    </div>
+
+<py-script>
+from js import document
+from pyodide.ffi import create_proxy
+
+lenape_examples = {
+    "greetings": """Greetings in Lenape:
+    He! (hay) = Hello!
+    Kulamalsi hech? (kule-ah-mahl-see huch) = How are you?
+    Nulamalsi (nule-ah-mahl-see) = I am well.""",
+    
+    "numbers": """Numbers in Lenape:
+    kweti (kwuh-tee) = one
+    nisha = two
+    naxa = three
+    newa = four
+    palenaxk = five
+    kwetash = six
+    nishash = seven
+    xash = eight
+    peshkunk = nine
+    telen = ten
+    nishinxke = twenty
+    xinxke = thirty
+    neinxke = forty
+    
+    Making larger numbers:
+    telen ok kweti = 11 (ten and one)
+    nishinxke ok nisha = 22 (twenty and two)""",
+    
+    "animate_words": """Living (Animate) Words:
+    ahas (ah-hahs) = crow
+    ahasak (ah-hah-suhk) = crows""",
+    
+    "inanimate_words": """Non-Living (Inanimate) Words:
+    hempes (hem-buhs) = shirt
+    hempsa (hemb-sah) = shirts""",
+    
+    "colors_animate": """Colors for Living Things:
+    seksu = he/she is black
+    seksuwak = they are black
+    opsu = he/she white
+    opsuwak = they are white
+    askaskwsu = he/she green
+    askaskwsuwak = they are green
+    aonsu = he/she blue
+    aonsuwak = they are blue
+    wipunkwsu = he/she gray
+    wipunkwsuwak = they are gray
+    wisawsu = he/she yellow
+    wisawsuwak = they are yellow
+    maxksu = he/she red
+    maxksuwak = they are red""",
+    
+    "colors_inanimate": """Colors for Objects:
+    seke (suhk-ay) = it is black
+    sekeyo = they are black
+    ope = it is white
+    opeyo = they are white
+    askaskwe = it is green
+    askaskweyo = they are green
+    aone = it is blue
+    aoneyo = they are blue
+    wipunkwe = it is gray
+    wipunkweyo = they are gray
+    wisae = it is yellow
+    wisaeyo = they are yellow
+    maxke = it is red
+    maxkeyo = they are red"""
+}
+
+def show_example(category):
+    example_div = document.getElementById(f"example-{category}")
+    if example_div.style.display == "none":
+        example_div.style.display = "block"
+    else:
+        example_div.style.display = "none"
+
+def setup_examples():
+    example_section = document.getElementById("example-section")
+    for category, text in lenape_examples.items():
+        button = document.createElement("button")
+        button.textContent = f"{category.replace('_', ' ').title()} Examples"
+        button.className = "example-button"
+        button.onclick = create_proxy(lambda e, cat=category: show_example(cat))
+        
+        example_div = document.createElement("div")
+        example_div.id = f"example-{category}"
+        example_div.style.display = "none"
+        example_div.innerHTML = text.replace("\n", "<br>")
+        example_div.style.padding = "10px"
+        example_div.style.marginBottom = "10px"
+        example_div.style.backgroundColor = "#fff"
+        example_div.style.borderRadius = "4px"
+        
+        example_section.appendChild(button)
+        example_section.appendChild(example_div)
+
+def create_input_field(container, label_text, input_id):
+    div = document.createElement("div")
+    div.className = "input-group"
+    
+    label = document.createElement("label")
+    label.textContent = label_text
+    
+    input_elem = document.createElement("input")
+    input_elem.id = input_id
+    
+    div.appendChild(label)
+    div.appendChild(input_elem)
+    container.appendChild(div)
+
+def setup_madlib1():
+    container = document.getElementById("madlib1-inputs")
+    fields = [
+        ("Enter a body part:", "input1-bodypart"),
+        ("Enter another body part:", "input1-bodypart2"),
+        ("Enter a number:", "input1-number"),
+        ("Enter a color:", "input1-color"),
+        ("Enter an emotion:", "input1-emotion"),
+        ("Enter a different number:", "input1-number2"),
+        ("Enter an activity:", "input1-activity")
+    ]
+    for label, input_id in fields:
+        create_input_field(container, label, input_id)
+
+def setup_madlib2():
+    container = document.getElementById("madlib2-inputs")
+    fields = [
+        ("Enter a number:", "input2-number"),
+        ("Enter a friend's name:", "input2-friend"),
+        ("Enter a body part:", "input2-bodypart"),
+        ("Enter another body part:", "input2-bodypart2"),
+        ("Enter a color:", "input2-color"),
+        ("Enter a fruit:", "input2-fruit"),
+        ("Enter a plural body part:", "input2-bodyparts")
+    ]
+    for label, input_id in fields:
+        create_input_field(container, label, input_id)
+
+def generate_story1(event):
+    inputs = {
+        'bodypart': document.getElementById("input1-bodypart").value,
+        'bodypart2': document.getElementById("input1-bodypart2").value,
+        'number': document.getElementById("input1-number").value,
+        'color': document.getElementById("input1-color").value,
+        'emotion': document.getElementById("input1-emotion").value,
+        'number2': document.getElementById("input1-number2").value,
+        'activity': document.getElementById("input1-activity").value
+    }
+    
+    story = (f"I was riding my bike, but I crashed! I scraped my {inputs['bodypart']} "
+            f"and broke my {inputs['bodypart2']}. I had to wear a cast for {inputs['number']} weeks. "
+            f"The weirdest part was that my {inputs['bodypart']} turned {inputs['color']}. "
+            f"I wasn't expecting that! It made me feel {inputs['emotion']}. "
+            f"I probably won't be able to ride my bike again for {inputs['number2']} days. "
+            f"Next time, I'll try something safer, like {inputs['activity']}!")
+    
+    document.getElementById("story1-output").innerHTML = story
+
+def generate_story2(event):
+    inputs = {
+        'number': document.getElementById("input2-number").value,
+        'friend': document.getElementById("input2-friend").value,
+        'bodypart': document.getElementById("input2-bodypart").value,
+        'bodypart2': document.getElementById("input2-bodypart2").value,
+        'color': document.getElementById("input2-color").value,
+        'fruit': document.getElementById("input2-fruit").value,
+        'bodyparts': document.getElementById("input2-bodyparts").value
+    }
+    
+    story = (f"{inputs['number']} weeks ago, I was dancing with my friend {inputs['friend']}. "
+            f"They stepped on my {inputs['bodypart']} and hurt my {inputs['bodypart2']}. "
+            f"My {inputs['bodypart']} turned {inputs['color']}, "
+            f"and my {inputs['bodypart2']} looked more like a {inputs['fruit']}. "
+            f"I guess you can say {inputs['friend']} has two left {inputs['bodyparts']}!")
+    
+    document.getElementById("story2-output").innerHTML = story
+
+# Set up the initial state
+setup_examples()
+setup_madlib1()
+setup_madlib2()
+
+# Add event listeners to the generate buttons
+document.getElementById("generate1").onclick = create_proxy(generate_story1)
+document.getElementById("generate2").onclick = create_proxy(generate_story2)
+</py-script>
+</body>
+</html>
